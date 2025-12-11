@@ -88,13 +88,15 @@ exports.updateProduct = async (req, res, id, body) => {
 // Delete product (admin)
 exports.deleteProduct = async (req, res, id) => {
   try {
-    const product = await Product.findById(id);
-    if (!product) return sendJSON(res, 404, { error: "Product not found" });
+    const product = await Product.findByIdAndDelete(id);
+    console.log(product)
+    if (!product) {
+      return sendJSON(res, 404, { error: "Product not found" });
+    }
 
-    await product.remove();
     return sendJSON(res, 200, { message: "Product deleted" });
   } catch (err) {
-    console.error(err);
+    console.error("Delete Error:", err);
     return sendJSON(res, 500, { error: "Server error" });
   }
 };
