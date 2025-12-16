@@ -6,6 +6,8 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true, min: 0 },
   inStock: { type: Boolean, default: true },
   tags: [String],
+  images: [String],
+
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
 

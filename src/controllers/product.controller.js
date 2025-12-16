@@ -1,27 +1,147 @@
 const Product = require("../models/product.model");
 const { sendJSON } = require("../utils/response");
+const formidable = require("formidable");
+const path = require("path");
+const fs = require("fs");
+const Product = require("../models/product.model");
+const { sendJSON } = require("../utils/response");
+const formidable = require("formidable");
+const path = require("path");
+const fs = require("fs");
+const Product = require("../models/product.model");
+const { sendJSON } = require("../utils/response");
+exports.uploadProductImage = async (req, res, productId) => {
+  const uploadDir = path.join(__dirname, "../uploads/products");
+
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const form = new formidable.IncomingForm({
+    uploadDir,
+    keepExtensions: true,
+    multiples: true
+  });
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return sendJSON(res, 400, { error: "Image upload failed" });
+    }
+
+    const file = files.image;
+    if (!file) {
+      return sendJSON(res, 400, { error: "Image required" });
+    }
+
+    const savedPaths = [];
+
+    const saveFile = (f) => {
+      const newName = Date.now() + "-" + f.originalFilename;
+      const newPath = path.join(uploadDir, newName);
+      fs.renameSync(f.filepath, newPath);
+      savedPaths.push(`/uploads/products/${newName}`);
+    };
+
+    if (Array.isArray(file)) {
+      file.forEach(saveFile);
+    } else {
+      saveFile(file);
+    }
+
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      { $push: { images: { $each: savedPaths } } },
+      { new: true }
+    );
+
+    if (!product) {
+      return sendJSON(res, 404, { error: "Product not found" });
+    }
+
+    return sendJSON(res, 200, {
+      message: "Image uploaded",
+      images: product.images
+    });
+  });
+};
 
 // Create product (admin)
-exports.createProduct = async (req, res, body) => {
-  try {
-    const { name, description, price, inStock, tags } = body;
-    if (!name || price === undefined) return sendJSON(res, 400, { error: "name and price required" });
 
-    const product = await Product.create({
-      name,
-      description: description || "",
-      price: Number(price),
-      inStock: inStock === undefined ? true : !!inStock,
-      tags: Array.isArray(tags) ? tags : (tags ? tags.split(",").map(t=>t.trim()) : []),
-      createdBy: req.user ? req.user.id : undefined
-    });
 
-    return sendJSON(res, 201, { message: "Product created", product });
-  } catch (err) {
-    console.error(err);
-    return sendJSON(res, 500, { error: "Server error" });
+
+
+exports.createProduct = async (req, res) => {
+  const uploadDir = path.join(__dirname, "../uploads/products");
+
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
   }
+
+  const form = new formidable.IncomingForm({
+    uploadDir,
+    keepExtensions: true,
+    multiples: true
+  });
+
+  form.parse(req, async (err, fields, files) => {
+    try {
+      if (err) {
+        return sendJSON(res, 400, { error: "Form parse error" });
+      }
+
+      // 🔹 TEXT FIELDS
+      const name = fields.name?.[0];
+      const price = fields.price?.[0];
+      const description = fields.description?.[0] || "";
+      const inStock = fields.inStock ? fields.inStock[0] === "true" : true;
+      const tags = fields.tags ? fields.tags[0].split(",").map(t => t.trim()) : [];
+
+      if (!name || !price) {
+        return sendJSON(res, 400, { error: "name and price required" });
+      }
+
+      // 🔹 IMAGE HANDLING
+      const images = [];
+      const file = files.image;
+
+      if (file) {
+        const saveFile = (f) => {
+          const newName = Date.now() + "-" + f.originalFilename;
+          const newPath = path.join(uploadDir, newName);
+          fs.renameSync(f.filepath, newPath);
+          images.push(`/uploads/products/${newName}`);
+        };
+
+        if (Array.isArray(file)) {
+          file.forEach(saveFile);
+        } else {
+          saveFile(file);
+        }
+      }
+
+      // 🔹 CREATE PRODUCT
+      const product = await Product.create({
+        name,
+        description,
+        price: Number(price),
+        inStock,
+        tags,
+        images,
+        createdBy: req.user.id
+      });
+
+      return sendJSON(res, 201, {
+        message: "Product created with image",
+        product
+      });
+
+    } catch (error) {
+      console.error(error);
+      return sendJSON(res, 500, { error: "Server error" });
+    }
+  });
 };
+
 
 // Read list (public) with simple pagination & filters
 exports.listProducts = async (req, res, query) => {

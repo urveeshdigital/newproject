@@ -60,16 +60,14 @@ exports.handleRequest = async (req, res) => {
 
   // --- PRODUCT endpoints ---
   // Create product (ADMIN)
-  if (url === "/products" && method === "POST") {
-    return protect(req, res, async () => {
-      // authorize admin
-      const authz = authorize(["admin"]);
-      authz(req, res, async () => {
-        const body = await parseBody(req);
-        return productCtrl.createProduct(req, res, body);
-      });
+if (url === "/products" && method === "POST") {
+  return protect(req, res, () => {
+    const authz = authorize(["admin"]);
+    authz(req, res, () => {
+      return productCtrl.createProduct(req, res);
     });
-  }
+  });
+}
 
   // List products (public) - supports query string e.g. ?page=1&limit=10&q=phone
   if (url === "/products" && method === "GET") {
@@ -119,3 +117,4 @@ exports.handleRequest = async (req, res) => {
   res.writeHead(404, {"Content-Type":"application/json"});
   res.end(JSON.stringify({ error: "Route Not Found" }));
 };
+// UPLOAD PRODUCT IMAGE (ADMIN)
