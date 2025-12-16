@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema({
   inStock: { type: Boolean, default: true },
   tags: [String],
   images: [String],
-  quantity: [String],
+  quantity: { type: Number, required: true, min: 0 },
 
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
