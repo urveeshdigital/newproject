@@ -124,7 +124,7 @@ exports.createProduct = async (req, res) => {
         inStock,
         tags,
         images,
-        quantity,
+        quantity : Number(price),
         createdBy: req.user.id
       });
 
