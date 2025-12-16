@@ -87,6 +87,8 @@ exports.createProduct = async (req, res) => {
       // 🔹 TEXT FIELDS
       const name = fields.name?.[0];
       const price = fields.price?.[0];
+      const quantity = fields.price?.[0];
+
       const description = fields.description?.[0] || "";
       const inStock = fields.inStock ? fields.inStock[0] === "true" : true;
       const tags = fields.tags ? fields.tags[0].split(",").map(t => t.trim()) : [];
@@ -122,6 +124,7 @@ exports.createProduct = async (req, res) => {
         inStock,
         tags,
         images,
+        quantity,
         createdBy: req.user.id
       });
 
