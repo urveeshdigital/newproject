@@ -3,8 +3,7 @@ const { sendJSON } = require("../utils/response");
 const formidable = require("formidable");
 const path = require("path");
 const fs = require("fs");
-const productSchema = require("../models/product.model");
-const { sendJSON } = require("../utils/response");
+
 
 exports.uploadProductImage = async (req, res, productId) => {
   const uploadDir = path.join(__dirname, "../uploads/products");
@@ -116,7 +115,7 @@ exports.createProduct = async (req, res) => {
       }
 
       // 🔹 CREATE PRODUCT
-      const product = await productSchema.create({
+      const product = await Product.create({
         name,
         description,
         price: Number(price),
