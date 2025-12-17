@@ -5,6 +5,7 @@ const protect = require("../middleware/auth");
 const rateLimit = require("../middleware/rateLimit");
 const { cors } = require("../middleware/cors");
 const authorize = require("../middleware/authorize");
+const cartCtrl = require("../controllers/cart.controller");
 
 exports.handleRequest = async (req, res) => {
   // CORS first
@@ -118,3 +119,32 @@ if (url === "/products" && method === "POST") {
   res.end(JSON.stringify({ error: "Route Not Found" }));
 };
 // UPLOAD PRODUCT IMAGE (ADMIN)
+// ADD TO CART (USER)
+if (url === "/cart/add" && method === "POST") {
+  return protect(req, res, async () => {
+    const body = await parseBody(req);
+    return cartCtrl.addToCart(req, res, body);
+  });
+}
+
+// UPDATE CART ITEM QUANTITY
+if (url === "/cart/update" && method === "PUT") {
+  return protect(req, res, async () => {
+    const body = await parseBody(req);
+    return cartCtrl.updateCartItem(req, res, body);
+  });
+}
+
+// GET CART (USER)
+if (url === "/cart" && method === "GET") {
+  return protect(req, res, () => {
+    return cartCtrl.getCart(req, res);
+  });
+}
+// REMOVE ITEM FROM CART
+if (url.startsWith("/cart/remove/") && method === "DELETE") {
+  return protect(req, res, () => {
+    const productId = url.split("/")[3];
+    return cartCtrl.removeFromCart(req, res, productId);
+  });
+}
