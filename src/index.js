@@ -1,6 +1,7 @@
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
+require("dotenv").config();
 
 const routes = require("./routes/routes");
 const connectDB = require("./models/db");

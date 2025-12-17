@@ -113,13 +113,9 @@ if (url === "/products" && method === "POST") {
       });
     });
   }
+  // --- CART endpoints ---
 
-  // Not found
-  res.writeHead(404, {"Content-Type":"application/json"});
-  res.end(JSON.stringify({ error: "Route Not Found" }));
-};
-// UPLOAD PRODUCT IMAGE (ADMIN)
-// ADD TO CART (USER)
+// ADD TO CART
 if (url === "/cart/add" && method === "POST") {
   return protect(req, res, async () => {
     const body = await parseBody(req);
@@ -135,12 +131,13 @@ if (url === "/cart/update" && method === "PUT") {
   });
 }
 
-// GET CART (USER)
+// GET CART
 if (url === "/cart" && method === "GET") {
   return protect(req, res, () => {
     return cartCtrl.getCart(req, res);
   });
 }
+
 // REMOVE ITEM FROM CART
 if (url.startsWith("/cart/remove/") && method === "DELETE") {
   return protect(req, res, () => {
@@ -148,3 +145,9 @@ if (url.startsWith("/cart/remove/") && method === "DELETE") {
     return cartCtrl.removeFromCart(req, res, productId);
   });
 }
+
+
+  // Not found
+  res.writeHead(404, {"Content-Type":"application/json"});
+  res.end(JSON.stringify({ error: "Route Not Found" }));
+};
